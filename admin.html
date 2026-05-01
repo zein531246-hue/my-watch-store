@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة الإدارة</title>
+  <script>
+    try {
+      if (localStorage.getItem('alabood_theme') === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    } catch (e) {}
+    if (sessionStorage.getItem('alabood_admin_auth') !== '1') {
+      window.location.replace('Untitled-1.html');
+    }
+  </script>
+  <style>
+    :root {
+      --beige: #f8f4ee;
+      --beige-dark: #e9e1d0;
+      --olive: #7c8c4c;
+      --olive-dark: #5b6638;
+      --olive-light: #b2bc8a;
+      --danger: #c53030;
+      --danger-bg: #fff5f5;
+    }
+    html[data-theme="dark"] {
+      --beige: #141712;
+      --beige-dark: #1f2419;
+      --olive: #a3b87a;
+      --olive-dark: #e8edd8;
+      --olive-light: #8a9a68;
+      --danger: #f56565;
+      --danger-bg: #3d1f1f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Tajawal', sans-serif;
+      background: var(--beige);
+      color: var(--olive-dark);
+      min-height: 100vh;
+    }
+    .admin-page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 24px 16px 36px;
+    }
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .admin-title {
+      margin: 0;
+      font-size: 1.6rem;
+      font-weight: 900;
+    }
+    .admin-subtitle {
+      margin: 0 0 16px;
+      color: var(--olive);
+      font-size: 0.95rem;
+    }
+    .admin-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      border: 0;
+      border-radius: 10px;
+      padding: 9px 13px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-export {
+      background: var(--olive);
+      color: var(--beige);
+    }
+    .btn-logout {
+      background: var(--beige-dark);
+      color: var(--olive-dark);
+    }
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid rgba(124, 140, 76, 0.23);
+      border-radius: 12px;
+      background: #fffdf8;
+    }
+    table {
+      width: 100%;
+      min-width: 1200px;
+      border-collapse: collapse;
+    }
+    th, td {
+      border-bottom: 1px solid rgba(124, 140, 76, 0.16);
+      padding: 10px;
+      text-align: right;
+      vertical-align: top;
+      font-size: 0.92rem;
+    }
+    th {
+      background: var(--beige-dark);
+      font-weight: 800;
+    }
+    .products-list {
+      margin: 0;
+      padding-right: 16px;
+    }
+    .status-select {
+      border: 1px solid rgba(124, 140, 76, 0.35);
+      background: var(--beige);
+      color: var(--olive-dark);
+      border-radius: 8px;
+      padding: 6px 8px;
+      min-width: 108px;
+    }
+    .status-select.status-returned {
+      border-color: var(--danger) !important;
+      background: var(--danger-bg) !important;
+      color: var(--danger) !important;
+      font-weight: 800;
+    }
+    .status-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .btn-return {
+      border: 1px solid var(--danger);
+      background: transparent;
+      color: var(--danger);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease;
+    }
+    .btn-return:hover:not(:disabled) {
+      background: var(--danger);
+      color: #fff;
+    }
+    .btn-return:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    tr.row-returned td {
+      background: rgba(197, 48, 48, 0.06);
+    }
+    html[data-theme="dark"] tr.row-returned td {
+      background: rgba(245, 101, 101, 0.08);
+    }
+    .admin-notes-input {
+      width: 100%;
+      min-width: 130px;
+      min-height: 34px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(124, 140, 76, 0.26);
+      background: var(--beige);
+      color: var(--olive-dark);
+      font-size: 0.92rem;
+      resize: vertical;
+      transition: border 0.2s;
+      direction: rtl;
+    }
+    .admin-notes-input:focus {
+      outline: none;
+      border-color: var(--olive);
+      background: #f4fae0;
+    }
+    html[data-theme="dark"] .admin-notes-input:focus {
+      background: var(--beige-dark);
+    }
+    .empty {
+      text-align: center;
+      color: var(--olive);
+      padding: 22px;
+    }
+    .catalog-section {
+      margin-top: 36px;
+      padding-top: 28px;
+      border-top: 2px solid rgba(124, 140, 76, 0.25);
+    }
+    .catalog-title {
+      margin: 0 0 8px;
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: var(--olive-dark);
+    }
+    .catalog-hint {
+      margin: 0 0 16px;
+      color: var(--olive);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .catalog-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .catalog-card {
+      display: grid;
+      grid-template-columns: 72px 1fr auto;
+      gap: 14px;
+      align-items: center;
+      background: #fffdf8;
+      border: 1px solid rgba(124, 140, 76, 0.22);
+      border-radius: 12px;
+      padding: 12px 14px;
+    }
+    html[data-theme="dark"] .catalog-card {
+      background: var(--beige-dark);
+    }
+    .catalog-card.is-hidden-product {
+      opacity: 0.72;
+      border-style: dashed;
+    }
+    .catalog-thumb {
+      width: 72px;
+      height: 72px;
+      border-radius: 10px;
+      object-fit: cover;
+    }
+    .catalog-name {
+      font-weight: 800;
+      color: var(--olive-dark);
+      margin: 0 0 4px;
+      font-size: 1rem;
+    }
+    .catalog-price-label {
+      margin: 0;
+      color: var(--olive);
+      font-size: 0.88rem;
+    }
+    .catalog-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 200px;
+    }
+    .catalog-price-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .catalog-price-input {
+      width: 88px;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(124, 140, 76, 0.4);
+      background: var(--beige);
+      color: var(--olive-dark);
+      font-weight: 700;
+    }
+    .btn-edit-price {
+      background: var(--olive);
+      color: var(--beige);
+      border: 0;
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    .btn-hide-product {
+      background: transparent;
+      border: 1px solid var(--olive);
+      color: var(--olive-dark);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    .btn-hide-product.is-off {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+  </style>
+</head>
+<body>
+  <main class="admin-page">
+    <div class="admin-header">
+      <h1 class="admin-title">دفتر حسابات الطلبات</h1>
+      <div class="admin-actions">
+        <button id="admin-theme-toggle" class="btn btn-logout" type="button" title="وضع فاتح / داكن">🌓 الوضع</button>
+        <button id="export-btn" class="btn btn-export" type="button">تصدير إلى Excel</button>
+        <button id="logout-btn" class="btn btn-logout" type="button">تسجيل خروج</button>
+      </div>
+    </div>
+    <p class="admin-subtitle">تعرض هذه الصفحة جميع الطلبات المحفوظة على نفس الجهاز عبر LocalStorage.</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>تاريخ ووقت الطلب</th>
+            <th>بيانات الزبون</th>
+            <th>طريقة الدفع</th>
+            <th>تفاصيل المنتجات</th>
+            <th>المجموع الكلي</th>
+            <th>حالة الطلب</th>
+            <th>إجراءات</th>
+            <th>ملاحظات إدارية</th>
+          </tr>
+        </thead>
+        <tbody id="orders-body"></tbody>
+      </table>
+    </div>
+
+    <section class="catalog-section" aria-labelledby="catalog-heading">
+      <h2 id="catalog-heading" class="catalog-title">إدارة المنتجات</h2>
+      <p class="catalog-hint">
+        تعديل السعر أو إخفاء المنتج يُطبَّق فوراً على صفحة المتجر الرئيسية عبر التخزين المحلي (LocalStorage). لعرض التحديثات في تبويب آخر مفتوح للموقع، أعد تحميل الصفحة أو انتظر المزامنة التلقائية.
+      </p>
+      <div id="catalog-grid" class="catalog-grid"></div>
+    </section>
+  </main>
+
+  <script>
+    const ORDERS_KEY = 'alabood_orders';
+    const PRODUCT_CATALOG_KEY = 'alabood_product_catalog';
+    const THEME_KEY = 'alabood_theme';
+    const STATUSES = ['جديد', 'تم الدفع', 'استبدال', 'مسترجع'];
+    const PAY_METHODS_LABELS = {
+      cod: 'دفع عند الاستلام',
+      whatsapp: 'واتساب',
+      bank: 'تحويل بنكي',
+      transfer: 'تحويل',
+      // fallback
+      undefined: '-',
+      '': '-'
+    };
+    const DEFAULT_PRODUCT_CATALOG = [
+      { id: 'chair-01', name: 'كرسي مريح فاخر', price: 299, hidden: false, image: 'https://images.unsplash.com/photo-1582719471384-894fbb16e074?auto=format&fit=crop&w=900&q=80' },
+      { id: 'table-01', name: 'طاولة جانبية أنيقة', price: 179, hidden: false, image: 'https://images.unsplash.com/photo-1519710164239-da123dc03ef4?auto=format&fit=crop&w=900&q=80' },
+      { id: 'lamp-01', name: 'مصباح ديكور هادئ', price: 129, hidden: false, image: 'https://images.unsplash.com/photo-1616627452091-7fd8a74f90d3?auto=format&fit=crop&w=900&q=80' },
+      { id: 'bed-01', name: 'سرير عصري مميز', price: 899, hidden: false, image: 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80' },
+      { id: 'shelf-01', name: 'رف تخزين متعدد', price: 219, hidden: false, image: 'https://images.unsplash.com/photo-1582582429416-2d44f5f5fa98?auto=format&fit=crop&w=900&q=80' },
+    ];
+    const ordersBody = document.getElementById('orders-body');
+    const catalogGrid = document.getElementById('catalog-grid');
+    const exportBtn = document.getElementById('export-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    const adminThemeToggle = document.getElementById('admin-theme-toggle');
+
+    const getOrders = () => {
+      try {
+        const raw = localStorage.getItem(ORDERS_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (error) {
+        return [];
+      }
+    };
+
+    const saveOrders = (orders) => {
+      localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+    };
+
+    const normalizeProductCatalog = (saved) => {
+      const arr = Array.isArray(saved) ? saved : [];
+      const map = new Map(arr.map((p) => [p.id, p]));
+      return DEFAULT_PRODUCT_CATALOG.map((def) => {
+        const s = map.get(def.id);
+        if (!s) return { ...def };
+        const price = typeof s.price === 'number' && !Number.isNaN(s.price) ? s.price : def.price;
+        return { ...def, price, hidden: Boolean(s.hidden) };
+      });
+    };
+
+    const getProductCatalog = () => {
+      try {
+        const raw = localStorage.getItem(PRODUCT_CATALOG_KEY);
+        if (!raw) {
+          const initial = DEFAULT_PRODUCT_CATALOG.map((d) => ({ ...d }));
+          localStorage.setItem(PRODUCT_CATALOG_KEY, JSON.stringify(initial));
+          return initial;
+        }
+        return normalizeProductCatalog(JSON.parse(raw));
+      } catch (error) {
+        return DEFAULT_PRODUCT_CATALOG.map((d) => ({ ...d }));
+      }
+    };
+
+    const saveProductCatalog = (list) => {
+      localStorage.setItem(PRODUCT_CATALOG_KEY, JSON.stringify(list));
+    };
+
+    const formatCurrency = (price) => `${price} ر.س`;
+
+    const formatDateTime = (isoDate) => {
+      const date = new Date(isoDate);
+      return `${date.toLocaleDateString('ar-EG')} - ${date.toLocaleTimeString('ar-EG')}`;
+    };
+
+    // تعديل دالة طريقة الدفع: تعتمد فقط على paymentmethod أو تظهر "غير محدد" لو فارغ
+    function getPayMethodDisplayForOrders(paymentmethod) {
+      if (!paymentmethod) return 'غير محدد';
+      let method = paymentmethod;
+      if (typeof method === 'string') {
+        method = method.trim().toLowerCase();
+        if (method === 'cod' || method === 'دفع عند الاستلام') return 'دفع عند الاستلام';
+        if (method === 'bank') return 'تحويل بنكي';
+        if (method === 'transfer' || method === 'تحويل' || method === 'حوّل' || method === 'تحويبل') return 'تحويل';
+        if (method === 'whatsapp' || method === 'واتساب') return 'واتساب';
+      }
+      if (PAY_METHODS_LABELS[method]) return PAY_METHODS_LABELS[method];
+      return method || 'غير محدد';
+    }
+
+    // حفظ محتوى الملاحظات لكل طلب (للمحافظة على النص عند إعادة التصيير)
+    let notesCache = {};
+
+    const renderOrders = () => {
+      const orders = getOrders();
+      ordersBody.innerHTML = '';
+      notesCache = {}; // نعيد تهيئة الكاش بالقيم الحالية
+
+      if (!orders.length) {
+        ordersBody.innerHTML = '<tr><td class="empty" colspan="8">لا يوجد طلبات حتى الآن.</td></tr>';
+        return;
+      }
+
+      orders.forEach((order) => {
+        const row = document.createElement('tr');
+        if (order.status === 'مسترجع') {
+          row.classList.add('row-returned');
+        }
+        const productsHtml = order.items.map((item) => `<li>${item.name} - الكمية: ${item.quantity}</li>`).join('');
+        const statusOptions = STATUSES
+          .map((status) => `<option value="${status}" ${order.status === status ? 'selected' : ''}>${status}</option>`)
+          .join('');
+        const selectClass = order.status === 'مسترجع' ? 'status-select status-returned' : 'status-select';
+        const returnDisabled = order.status === 'مسترجع' ? 'disabled' : '';
+
+        // طريقة الدفع: نعتمد فقط على حقل paymentmethod ونظهر "غير محدد" إذا كان فارغ
+        let payMethodValue = order.paymentmethod;
+        let payMethodDisplay = getPayMethodDisplayForOrders(payMethodValue);
+
+        // الملاحظات الإدارية - احفظ القيمة الحالية في الكاش
+        let notesVal = typeof order.adminNotes === "string" ? order.adminNotes : "";
+        notesCache[order.id] = notesVal;
+
+        row.innerHTML = `
+          <td>${formatDateTime(order.createdAt)}</td>
+          <td>
+            <div>الاسم: ${order.customer.name}</div>
+            <div>الجوال: ${order.customer.phone}</div>
+            <div>الإيميل: ${order.customer.email}</div>
+          </td>
+          <td>${payMethodDisplay}</td>
+          <td><ul class="products-list">${productsHtml}</ul></td>
+          <td>${formatCurrency(order.total)}</td>
+          <td>
+            <select class="${selectClass}" data-order-id="${order.id}">
+              ${statusOptions}
+            </select>
+          </td>
+          <td class="status-cell">
+            <button type="button" class="btn-return" data-order-id="${order.id}" ${returnDisabled}>طلب استرجاع</button>
+          </td>
+          <td>
+            <textarea class="admin-notes-input" data-order-id="${order.id}" placeholder="أدخل ملاحظة..." rows="2" spellcheck="false">${notesVal.replace(/</g, "&lt;").replace(/>/g,"&gt;")}</textarea>
+          </td>
+        `;
+        ordersBody.appendChild(row);
+      });
+    };
+
+    // عند تصدير الأكسل: أيضاً اعتمد paymentmethod فقط و"غير محدد" إذا فارغ
+    const exportToCsv = () => {
+      const orders = getOrders();
+      if (!orders.length) return;
+
+      const header = ['تاريخ ووقت الطلب', 'اسم الزبون', 'الجوال', 'الإيميل', 'طريقة الدفع', 'تفاصيل المنتجات', 'المجموع الكلي', 'حالة الطلب', 'ملاحظات إدارية'];
+      const rows = orders.map((order) => {
+        const products = order.items.map((item) => `${item.name} (x${item.quantity})`).join(' | ');
+        let payMethodValue = order.paymentmethod;
+        let payMethodDisplay = getPayMethodDisplayForOrders(payMethodValue);
+        return [
+          formatDateTime(order.createdAt),
+          order.customer.name,
+          order.customer.phone,
+          order.customer.email,
+          payMethodDisplay,
+          products,
+          order.total,
+          order.status,
+          typeof order.adminNotes === "string" ? order.adminNotes.replace(/[\r\n]+/g, " ").replace(/"/g, '""') : ''
+        ];
+      });
+      const csv = [header, ...rows]
+        .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+        .join('\n');
+
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'orders-export.csv';
+      link.click();
+      URL.revokeObjectURL(link.href);
+    };
+
+    ordersBody.addEventListener('change', (event) => {
+      const target = event.target;
+      // Handle status select
+      if (target instanceof HTMLSelectElement && target.classList.contains('status-select')) {
+        const orderId = target.dataset.orderId;
+        if (!orderId) return;
+
+        const orders = getOrders();
+        const order = orders.find((entry) => entry.id === orderId);
+        if (!order) return;
+        order.status = target.value;
+        saveOrders(orders);
+        target.classList.toggle('status-returned', target.value === 'مسترجع');
+        renderOrders();
+        return;
+      }
+      // Handle notes (textarea)
+      if (target instanceof HTMLTextAreaElement && target.classList.contains('admin-notes-input')) {
+        const orderId = target.dataset.orderId;
+        if (!orderId) return;
+        const orders = getOrders();
+        const order = orders.find((entry) => entry.id === orderId);
+        if (!order) return;
+        order.adminNotes = target.value;
+        notesCache[orderId] = order.adminNotes; // تحديث الكاش مباشرةً
+        saveOrders(orders);
+        // لا نعيد التصيير هنا حتى لا نفقد المؤشر
+      }
+    });
+
+    ordersBody.addEventListener('input', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLTextAreaElement)) return;
+      if (!target.classList.contains('admin-notes-input')) return;
+      const orderId = target.dataset.orderId;
+      if (!orderId) return;
+      const orders = getOrders();
+      const order = orders.find((entry) => entry.id === orderId);
+      if (!order) return;
+      order.adminNotes = target.value;
+      notesCache[orderId] = order.adminNotes; // تحديث الكاش مباشرةً
+      saveOrders(orders);
+      // لا تعيد التصيير هنا من أجل المحافظة على التركيز
+    });
+
+    ordersBody.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      if (!target.classList.contains('btn-return')) return;
+      const orderId = target.dataset.orderId;
+      if (!orderId) return;
+
+      const orders = getOrders();
+      const order = orders.find((entry) => entry.id === orderId);
+      if (!order || order.status === 'مسترجع') return;
+      order.status = 'مسترجع';
+      saveOrders(orders);
+      renderOrders();
+    });
+
+    adminThemeToggle.addEventListener('click', () => {
+      if (document.documentElement.getAttribute('data-theme') === 'dark') {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem(THEME_KEY, 'light');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem(THEME_KEY, 'dark');
+      }
+    });
+
+    const renderProductCatalog = () => {
+      const list = getProductCatalog();
+      catalogGrid.innerHTML = '';
+      list.forEach((p) => {
+        const card = document.createElement('div');
+        card.className = 'catalog-card' + (p.hidden ? ' is-hidden-product' : '');
+        card.innerHTML = `
+          <img class="catalog-thumb" src="${p.image}" alt="">
+          <div>
+            <p class="catalog-name">${p.name}</p>
+            <p class="catalog-price-label">السعر الحالي: ${formatCurrency(p.price)}</p>
+          </div>
+          <div class="catalog-actions">
+            <div class="catalog-price-row">
+              <input type="number" min="1" step="1" class="catalog-price-input" data-product-id="${p.id}" value="${p.price}" aria-label="سعر جديد" />
+              <button type="button" class="btn-edit-price" data-action="save-price" data-product-id="${p.id}">حفظ السعر</button>
+            </div>
+            <button type="button" class="btn-hide-product ${p.hidden ? 'is-off' : ''}" data-action="toggle-hide" data-product-id="${p.id}">
+              ${p.hidden ? 'إظهار للزبائن' : 'إخفاء عن الزبائن'}
+            </button>
+          </div>
+        `;
+        catalogGrid.appendChild(card);
+      });
+    };
+
+    catalogGrid.addEventListener('click', (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement)) return;
+      const id = target.dataset.productId;
+      if (!id) return;
+      const list = getProductCatalog();
+      const idx = list.findIndex((x) => x.id === id);
+      if (idx === -1) return;
+
+      if (target.dataset.action === 'save-price') {
+        const input = catalogGrid.querySelector(`.catalog-price-input[data-product-id="${id}"]`);
+        const raw = input ? Number(input.value) : NaN;
+        if (!Number.isFinite(raw) || raw < 1) {
+          alert('يرجى إدخال سعر صحيح (رقم أكبر من صفر).');
+          return;
+        }
+        list[idx].price = Math.round(raw);
+        saveProductCatalog(list);
+        renderProductCatalog();
+        return;
+      }
+
+      if (target.dataset.action === 'toggle-hide') {
+        list[idx].hidden = !list[idx].hidden;
+        saveProductCatalog(list);
+        renderProductCatalog();
+      }
+    });
+
+    exportBtn.addEventListener('click', exportToCsv);
+    logoutBtn.addEventListener('click', () => {
+      sessionStorage.removeItem('alabood_admin_auth');
+      window.location.replace('Untitled-1.html');
+    });
+
+    renderOrders();
+    renderProductCatalog();
+  </script>
+  <!-- صندوق الشكاوى -->
+  <section id="complaints-section" class="admin-complaints" style="margin:48px auto 0;max-width:900px;background:var(--beige-dark);padding:28px 16px 38px;border-radius:14px;box-shadow:0 1px 10px rgba(90,95,40,0.09)">
+    <h2 style="font-size:1.4rem;font-weight:800;margin-bottom:12px;color:var(--danger)">صندوق الشكاوى</h2>
+    <div id="complaints-table-wrap" style="overflow-x:auto;">
+      <table id="complaints-table" style="width:100%;border-collapse:collapse;text-align:right;background:#fffdf8">
+        <thead>
+          <tr style="background:var(--olive-light);color:#fff;">
+            <th style="padding:7px 9px;">الاسم</th>
+            <th style="padding:7px 9px;">الايميل</th>
+            <th style="padding:7px 9px;">نص الشكوى</th>
+            <th style="padding:7px 9px;">تاريخ الإرسال</th>
+            <th style="padding:7px 9px;">إجراء</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- محتوى الشكاوى -->
+        </tbody>
+      </table>
+    </div>
+    <p id="complaints-empty-msg" style="color:var(--olive);font-size:1.05rem;margin-top:15px;display:none;text-align:center;">لا يوجد شكاوى حالياً.</p>
+  </section>
+  <script>
+    // توحيد الحقول بحيث تصير [name - email - message] ونعرضها بشكل صحيح
+    function getComplaints() {
+      try {
+        const raw = localStorage.getItem('complaints');
+        if (!raw) return [];
+        let arr = JSON.parse(raw);
+        if (!Array.isArray(arr)) return [];
+        // تصحيح الحقول عند القراءة ليصير عندنا دائماً name/email/message/date
+        arr = arr.map(c => {
+          // قد يكون الحقل اسمه "complaint" أو "text" أو "message"
+          // بنحولهم لـ message
+          let message = c.message || c.complaint || c.text || "";
+          // تصحيح بقية الحقول
+          let name = c.name || c.الاسم || "";
+          let email = c.email || c.ايميل || c.mail || "";
+          let date = c.date || c.تاريخ || "";
+          return { name, email, message, date };
+        });
+        return arr;
+      } catch (e) {
+        return [];
+      }
+    }
+    function saveComplaints(arr) {
+      localStorage.setItem('complaints', JSON.stringify(arr));
+    }
+    // Format ISO or Date string to Arabic readable date
+    function toArabicDate(dt) {
+      if (!dt) return '-';
+      try {
+        let d = typeof dt === "string" ? new Date(dt) : dt;
+        if (!(d instanceof Date) || isNaN(d)) return '-';
+        return d.toLocaleString('ar-EG', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        });
+      } catch {
+        return '-';
+      }
+    }
+    // Safe HTML for any user string
+    function escapeHtml(txt) {
+      if (!txt) return '';
+      return String(txt).replace(/[&<>"'`]/g, s => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;',
+        '"': '&quot;', "'": '&#039;', '`': '&#096;'
+      })[s]);
+    }
+
+    function renderComplaints() {
+      const tbl = document.getElementById('complaints-table').querySelector('tbody');
+      const emptyMsg = document.getElementById('complaints-empty-msg');
+      const list = getComplaints();
+      tbl.innerHTML = '';
+      if (!list.length) {
+        emptyMsg.style.display = '';
+        return;
+      }
+      emptyMsg.style.display = 'none';
+      // Sort الأحدث أولاً
+      list.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      list.forEach((cmp, i) => {
+        const tr = document.createElement('tr');
+        tr.style.borderBottom = "1px solid #eee";
+        tr.innerHTML = `
+          <td style="padding:7px 9px;vertical-align:top">${cmp.name ? escapeHtml(cmp.name) : '-'}</td>
+          <td style="padding:7px 9px;vertical-align:top">${cmp.email ? escapeHtml(cmp.email) : '-'}</td>
+          <td style="padding:7px 9px;vertical-align:top;max-width:260px;word-break:break-word">${cmp.message ? escapeHtml(cmp.message) : '-'}</td>
+          <td style="padding:7px 9px;vertical-align:top;white-space:nowrap">${cmp.date ? toArabicDate(cmp.date) : '-'}</td>
+          <td style="padding:7px 9px">
+            <button class="btn btn-delete-complaint" style="background:var(--danger);color:#fff;padding:7px 13px;border-radius:8px;font-size:0.95rem;cursor:pointer;" data-complaint-index="${i}">حذف</button>
+          </td>
+        `;
+        tbl.appendChild(tr);
+      });
+    }
+    document.getElementById('complaints-table').addEventListener('click', function(event) {
+      const btn = event.target.closest('.btn-delete-complaint');
+      if (!btn) return;
+      const idx = Number(btn.dataset.complaintIndex);
+      if (!Number.isFinite(idx)) return;
+      if (!confirm('هل أنت متأكد أنك تريد حذف هذه الشكوى؟')) return;
+      let current = getComplaints();
+      current.splice(idx, 1);
+      saveComplaints(current);
+      renderComplaints();
+    });
+    renderComplaints();
+  </script>
+</body>
+</html>
